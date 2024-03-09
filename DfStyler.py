@@ -1,8 +1,4 @@
 # Class DfStyler
-import IPython
-import os
-import zipfile
-
 class DfStyler():
 	def __init__(self):
 		return
@@ -142,5 +138,5 @@ class DfStyler():
 			html_str += '<th style="text-align:center"><td style="vertical-align:top">'
 			html_str += styler.to_html().replace('table', 'table style="display:inline"')
 			html_str += '</td></th>'
-		IPython.display.display_html(html_str, raw=True)
-		return
+		#IPython.display.display_html(html_str, raw=True)
+		return html_str
