@@ -1,31 +1,100 @@
+import pandas as pd
+
+OUR_BLUE = '#cfe2f3'
+OUR_GOLD = '#ffe9b8'
+OUR_GREEN = '#d9ead3'
+OUR_ORANGE = '#fce5cd'
+OUR_YELLOW = '#fff2cc'
+
 # Class DfStyler
 class DfStyler():
+	TABLE_STYLE = {
+		'selector': 'td',
+		'props': [
+			('text-align', 'center'),
+			('border', '1px dotted black'),
+		]
+	}
+
+	TABLE_COL_HEADING_STYLE = {
+		'selector': 'th.col_heading',
+		'props': [
+			('text-align', 'center'),
+		]
+	}
+
+	TABLE_ROW_HEADING_STYLE = {
+		'selector': 'th.row_heading',
+		'props': [
+			('text-align', 'left'),
+		]
+	}
+
+	TABLE_DATA_CENTRED = {
+		'selector': 'td.data',
+		'props': [
+			('text-align', 'center'),
+		]
+	}
+
+	ROW_STYLE_AGGREGATE = {
+		'text-align': 'center',
+		'font-size': '15px',
+		'font-weight': 'bold',
+		'background-color': OUR_GREEN,
+	}
+
+	ROW_STYLE_BLUE = "background-color:#cfe2f3"
+	ROW_STYLE_ORANGE = "background-color:#fce5cd"
+	ROW_STYLE_GREEN = "background-color:#d9ead3"
+	ROW_STYLE_YELLOW = "background-color:#fff2cc"
+	ROW_STYLE_GOLD = "background-color:#ffe9b8"
+
+	TABLE_CAPTION_STYLE = {
+		'selector': 'caption',
+		'props': [
+			('color', 'black'),
+			('background-color', '#c9daf8'), #'hsl(189, 8%, 91%)'),
+			('font-weight', 'bold'),
+			('font-size', '17px')
+		]
+	}
+
 	def __init__(self):
+		self.DEFAULT_TABLE_STYLE = [
+			self.TABLE_CAPTION_STYLE,
+			self.TABLE_COL_HEADING_STYLE,
+			self.TABLE_ROW_HEADING_STYLE,
+			self.TABLE_DATA_CENTRED,
+		]
 		return
 
-	@staticmethod
-	def get_styler_with_aggregate(df, style, agg_info={}):
+	def get_styler_with_aggregate(self, df, style, agg_info={}):
 		'''
 		agg_info is a dictionary with index namw, column dict with col names as keys and value telling how to aggregate
 		'''
-		df_tot = DfStyler.get_aggregate_df(
+		if 'index_name' not in agg_info:
+			agg_info['index_name'] = 'Aggregate'
+		if 'row_props' not in agg_info:
+			agg_info['row_props'] = self.ROW_STYLE_AGGREGATE
+
+		df_tot = self.get_aggregate_df(
 			df,
 			agg_info['columns'],
 			index_name=agg_info['index_name']
 		)
 
-		styler = DfStyler.do_df_styling(df, style)
+		styler = self.do_df_styling(df, style)
 
 		tot_cols = [c for c in agg_info['columns']]
-		style_tot = DfStyler.get_style_tot(style, tot_cols, agg_row_style=agg_info)
+		style_tot = self.get_style_tot(style, tot_cols, agg_row_style=agg_info)
 
-		styler_tot = DfStyler.do_df_styling(df_tot, style_tot)
+		styler_tot = self.do_df_styling(df_tot, style_tot)
 		styler.concat(styler_tot)
 
 		return styler
 
-	@staticmethod
-	def get_aggregate_df(df, cols_agg_info, index_name='Aggregate'):
+	def get_aggregate_df(self, df, cols_agg_info, index_name='Aggregate'):
 		'''
 		cols_agg_info is a dictionary with column names as keys and value telling how to aggregate
 		'''
@@ -40,8 +109,7 @@ class DfStyler():
 		df_tot = pd.DataFrame(dict_rows, index=[index_name])
 		return df_tot
 
-	@staticmethod
-	def get_total_df(df, sum_cols, tot_row_name='Total'):
+	def get_total_df(self, df, sum_cols, tot_row_name='Total'):
 		'''
 		sum_cols is an array of columns for which sum to be done
 		'''
@@ -49,8 +117,7 @@ class DfStyler():
 		df_tot = pd.DataFrame(dict_rows, index=[tot_row_name])
 		return df_tot
 
-	@staticmethod
-	def get_style_tot(style, tot_cols, agg_row_style={}):
+	def get_style_tot(self, style, tot_cols, agg_row_style={}):
 		style_tot = {}
 		imitate = ['show_cols', 'hide_cols', 'hide_rows',
 				   'hide_col_index', 'hide_row_index',
@@ -75,8 +142,26 @@ class DfStyler():
 
 		return style_tot
 
-	@staticmethod
-	def do_df_styling(df, style):
+	def get_col_style_properties(self, col_info={}):
+		obj = []
+		if 'all' in col_info:
+			props = {'text-align': 'center',}
+			cols = col_info['all']
+			obj.append({'subset_cols': cols, 'properties': props})
+
+		if 'row_identifier' in col_info:
+			props = {'text-align': 'left', 'font-weight': 'bold',}
+			cols = [col_info['row_identifier']]
+			obj.append({'subset_cols': cols, 'properties': props})
+
+		if 'golden' in col_info:
+			props = {'font-weight': 'bold', 'font-size': '1.1em', 'background-color': OUR_GOLD}
+			cols = [col_info['golden']]
+			obj.append({'subset_cols': cols, 'properties': props})
+
+		return obj
+
+	def do_df_styling(self, df, style):
 		styler = df.style
 
 		if 'col_formats' in style:
@@ -131,8 +216,7 @@ class DfStyler():
 
 		return styler
 
-	@staticmethod
-	def display_side_by_side(*styler_tuple):
+	def display_side_by_side(self, *styler_tuple):
 		html_str = ''
 		for styler in styler_tuple:
 			html_str += '<th style="text-align:center"><td style="vertical-align:top">'
