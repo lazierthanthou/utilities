@@ -65,7 +65,6 @@ class DfStyler():
 			self.TABLE_CAPTION_STYLE,
 			self.TABLE_COL_HEADING_STYLE,
 			self.TABLE_ROW_HEADING_STYLE,
-			self.TABLE_DATA_CENTRED,
 		]
 		return
 
@@ -79,9 +78,7 @@ class DfStyler():
 			agg_info['row_props'] = self.ROW_STYLE_AGGREGATE
 
 		df_tot = self.get_aggregate_df(
-			df,
-			agg_info['columns'],
-			index_name=agg_info['index_name']
+			df, agg_info['columns'], index_name=agg_info['index_name']
 		)
 
 		styler = self.do_df_styling(df, style)
@@ -107,14 +104,6 @@ class DfStyler():
 				dict_rows[c] = cols_agg_info[c]
 
 		df_tot = pd.DataFrame(dict_rows, index=[index_name])
-		return df_tot
-
-	def get_total_df(self, df, sum_cols, tot_row_name='Total'):
-		'''
-		sum_cols is an array of columns for which sum to be done
-		'''
-		dict_rows = {c: (df[c].sum() if c in sum_cols else '') for c in df.columns}
-		df_tot = pd.DataFrame(dict_rows, index=[tot_row_name])
 		return df_tot
 
 	def get_style_tot(self, style, tot_cols, agg_row_style={}):
