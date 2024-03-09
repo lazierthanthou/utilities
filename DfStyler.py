@@ -12,18 +12,18 @@ class DfStyler():
 		'''
 		agg_info is a dictionary with index namw, column dict with col names as keys and value telling how to aggregate
 		'''
-		df_tot = Utilities.get_aggregate_df(
+		df_tot = DfStyler.get_aggregate_df(
 			df,
 			agg_info['columns'],
 			index_name=agg_info['index_name']
 		)
 
-		styler = Utilities.do_df_styling(df, style)
+		styler = DfStyler.do_df_styling(df, style)
 
 		tot_cols = [c for c in agg_info['columns']]
-		style_tot = Utilities.get_style_tot(style, tot_cols, agg_row_style=agg_info)
+		style_tot = DfStyler.get_style_tot(style, tot_cols, agg_row_style=agg_info)
 
-		styler_tot = Utilities.do_df_styling(df_tot, style_tot)
+		styler_tot = DfStyler.do_df_styling(df_tot, style_tot)
 		styler.concat(styler_tot)
 
 		return styler
