@@ -44,12 +44,9 @@ class DfStyler():
 		'background-color': OUR_GREEN,
 	}
 
-	ROW_STYLE_AGGREGATE_1 = f'font-size: 15px;font-weight: bold; background-color: {OUR_GREEN}'
-	ROW_STYLE_BLUE = 'background-color:#cfe2f3'
-	ROW_STYLE_ORANGE = 'background-color:#fce5cd'
-	ROW_STYLE_GREEN = 'background-color:#d9ead3'
-	ROW_STYLE_YELLOW = 'background-color:#fff2cc'
-	ROW_STYLE_GOLD = 'background-color:#ffe9b8'
+	STYLE_EMPHASIS = {
+		'font-weight': 'bold',
+	}
 
 	TABLE_CAPTION_STYLE = {
 		'selector': 'caption',
@@ -107,6 +104,25 @@ class DfStyler():
 		df_tot = pd.DataFrame(dict_rows, index=[index_name])
 		return df_tot
 
+	def _preprocess_row_styles(self, row_styles):
+		'''
+		row_styles is a list of dictionaries.
+		Each dictionary has the key 'indices' and 'style'.
+		The 'style' value is again a dictionary containing CSS attr as keys and values.
+		'''
+		properties = []
+		row_head_styles = {}
+		for item in row_styles:
+			properties.append({
+				'subset_rows': item['indices'],
+				'properties': item['style'],
+			})
+			s = [f'{k}:{v}' for k, v in item['style'].items()]
+			s = '; '.join(s)
+			for idx in item['indices']:
+				row_head_styles[idx] = s
+		return properties, row_head_styles
+
 	def get_style_tot(self, style, tot_cols, agg_row_style={}):
 		style_tot = {}
 		imitate = ['show_cols', 'hide_cols', 'hide_rows',
@@ -158,6 +174,19 @@ class DfStyler():
 		return obj
 
 	def do_df_styling(self, df, style):
+		# Preprocess style['row_styles']: required for styling index cells
+		if 'row_styles' in style:
+			properties, row_head_styles = self._preprocess_row_styles(style['row_styles'])
+
+			if 'row_head_styles' not in style:
+				style['row_head_styles'] = {}
+			style['row_head_styles'].update(row_head_styles)
+
+			if 'properties' not in style:
+				style['properties'] = []
+			style['properties'] += properties
+
+		# Now use the info in style variable to do actual styling
 		styler = df.style
 
 		if 'col_formats' in style:
