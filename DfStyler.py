@@ -44,11 +44,12 @@ class DfStyler():
 		'background-color': OUR_GREEN,
 	}
 
-	ROW_STYLE_BLUE = "background-color:#cfe2f3"
-	ROW_STYLE_ORANGE = "background-color:#fce5cd"
-	ROW_STYLE_GREEN = "background-color:#d9ead3"
-	ROW_STYLE_YELLOW = "background-color:#fff2cc"
-	ROW_STYLE_GOLD = "background-color:#ffe9b8"
+	ROW_STYLE_AGGREGATE_1 = f'font-size: 15px;font-weight: bold; background-color: {OUR_GREEN}'
+	ROW_STYLE_BLUE = 'background-color:#cfe2f3'
+	ROW_STYLE_ORANGE = 'background-color:#fce5cd'
+	ROW_STYLE_GREEN = 'background-color:#d9ead3'
+	ROW_STYLE_YELLOW = 'background-color:#fff2cc'
+	ROW_STYLE_GOLD = 'background-color:#ffe9b8'
 
 	TABLE_CAPTION_STYLE = {
 		'selector': 'caption',
@@ -117,14 +118,20 @@ class DfStyler():
 		if 'col_formats' in style:
 			style_tot['col_formats'] = {k: v for k, v in style['col_formats'].items() if k in tot_cols}
 
-		if 'properties' in style:
-			style_tot['properties'] = []
-			if 'row_props' in agg_row_style:
-				style_tot['properties'].append({
-					'subset_rows': [agg_row_style['index_name']],
-					'properties': agg_row_style['row_props']
-				})
+		style_tot['properties'] = []
+		if 'row_props' in agg_row_style:
+			style_tot['properties'].append({
+				'subset_rows': [agg_row_style['index_name']],
+				'properties': agg_row_style['row_props']
+			})
+			# now, for the index cell itself
+			style_tot['row_head_styles'] = {}
+			# apply style to the index cell too
+			s = [f'{k}:{v}' for k, v in agg_row_style['row_props'].items()]
+			s = '; '.join(s)
+			style_tot['row_head_styles'][agg_row_style['index_name']] = s
 
+		if 'properties' in style:
 			for p in style['properties']:
 				if ('subset_cols' in p) or ('subset_rows' in p):
 					style_tot['properties'].append(p)
@@ -162,6 +169,10 @@ class DfStyler():
 			for info in style['slice_formats']:
 				slice_, format_ = info[0], info[1]
 				styler.format(format_, subset=slice_)
+
+		if 'row_head_styles' in style:
+			d = style['row_head_styles']
+			styler.map_index(lambda idx: d[idx] if idx in d else '', axis=0)
 
 		if 'properties' in style:
 			for p in style['properties']:
