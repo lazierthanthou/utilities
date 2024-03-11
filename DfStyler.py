@@ -68,7 +68,7 @@ class DfStyler():
 
 	def get_styler_with_aggregate(self, df, style, agg_info={}):
 		'''
-		agg_info is a dictionary with index namw, column dict with col names as keys and value telling how to aggregate
+		agg_info is a dictionary with index name, column dict with col names as keys and value telling how to aggregate
 		'''
 		if 'index_name' not in agg_info:
 			agg_info['index_name'] = 'Aggregate'
@@ -218,9 +218,13 @@ class DfStyler():
 
 		if 'caption' in style:
 			styler.set_caption(style['caption'])
+			if 'caption_style' in style:
+				styler.set_table_styles([style['caption_style']], overwrite=False)
+			else:
+				styler.set_table_styles([self.TABLE_CAPTION_STYLE], overwrite=False)
 
 		if 'table_style' in style:
-			styler.set_table_styles(style['table_style'])
+			styler.set_table_styles(style['table_style'], overwrite=False)
 
 		if 'table_attributes' in style:
 			styler.set_table_attributes(style['table_attributes'])
