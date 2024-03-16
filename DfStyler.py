@@ -66,6 +66,81 @@ class DfStyler():
 		]
 		return
 
+	def _get_display_info(self, columns_info):
+		agg_info = { 'columns': {} }
+
+		rename_info, col_formats = {}, {}
+		for k, v in columns_info.items():
+			if 'format' in v:
+				if 'name' in v:
+					col_formats[v['name']] = v['format']
+				else:
+					col_formats[k] = v['format']
+
+			if 'aggregate' in v:
+				if k == '__index__':
+					agg_info['index_name'] = v['aggregate']
+				else:
+					if 'name' in v:
+						agg_info['columns'][v['name']] = v['aggregate']
+					else:
+						agg_info['columns'][k] = v['aggregate']
+
+			if 'name' in v:
+				if k != '__index__':
+					rename_info[k] = v['name']
+
+		show_cols = [k for k in columns_info if k != '__index__']
+		return show_cols, rename_info, col_formats, agg_info
+
+	def get_styler_with_aggregate_v2(self, df, style, columns_info={}):
+		'''
+		columns_info is a dictionary in which:
+			keys are column names, and
+			values are dictionaries with 'name', 'format' and 'aggregate' as keys
+		'''
+
+		show_cols, rename_info, col_formats, agg_info = self._get_display_info(columns_info)
+		style['col_formats'] = col_formats
+
+		# some styling of columns info produced here
+		col_info = {'all': []}
+		for col, info in columns_info.items():
+			if 'name' in info:
+				col_info['all'].append(info['name'])
+			else:
+				col_info['all'].append(col)
+		for col, info in columns_info.items():
+			if 'props' in info:
+				if info['props'] in ['row_identifier', 'golden']:
+					if 'name' in info:
+						col_info[info['props']] = info['name']
+					else:
+						col_info[info['props']] = col
+		style['properties'] = self.get_col_style_properties(col_info)
+
+		df = df[show_cols]
+		df = df.rename(columns=rename_info)
+
+		if 'index_name' not in agg_info:
+			agg_info['index_name'] = 'Aggregate'
+		if 'row_props' not in agg_info:
+			agg_info['row_props'] = self.ROW_STYLE_AGGREGATE
+
+		df_tot = self.get_aggregate_df(
+			df, agg_info['columns'], index_name=agg_info['index_name']
+		)
+
+		styler = self.do_df_styling(df, style)
+
+		tot_cols = [c for c in agg_info['columns']]
+		style_tot = self.get_style_tot(style, tot_cols, agg_row_style=agg_info)
+
+		styler_tot = self.do_df_styling(df_tot, style_tot)
+		styler.concat(styler_tot)
+
+		return styler
+
 	def get_styler_with_aggregate(self, df, style, agg_info={}):
 		'''
 		agg_info is a dictionary with index name, column dict with col names as keys and value telling how to aggregate
