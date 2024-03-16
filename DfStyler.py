@@ -58,6 +58,11 @@ class DfStyler():
 		]
 	}
 
+	# COMMON STYLES
+	S_LEFT_BOLD = {'text-align': 'center', 'font-weight': 'bold'}
+	S_RIGHT = {'text-align': 'right'}
+	S_CENTER = {'text-align': 'center'}
+
 	def __init__(self):
 		self.DEFAULT_TABLE_STYLE = [
 			self.TABLE_CAPTION_STYLE,
@@ -93,6 +98,52 @@ class DfStyler():
 		show_cols = [k for k in columns_info if k != '__index__']
 		return show_cols, rename_info, col_formats, agg_info
 
+	def get_styler_with_aggregate_v3(self, df, style, columns_info={}):
+		'''
+		columns_info is a dictionary in which:
+			keys are column names, and
+			values are dictionaries with 'name', 'format' and 'aggregate' as keys
+		'''
+
+		show_cols, rename_info, col_formats, agg_info = self._get_display_info(columns_info)
+		style['col_formats'] = col_formats
+
+		obj = []
+		# some styling of columns info produced here
+		for col, info in columns_info.items():
+			if 'name' in info:
+				col_name = info['name']
+			else:
+				col_name = col
+
+			if 'style' in info:
+				obj.append({'subset_cols': [col_name], 'properties': info['style']})
+			else:
+				obj.append({'subset_cols': [col_name], 'properties': self.S_CENTER})
+		style['properties'] = obj
+
+		df = df[show_cols]
+		df = df.rename(columns=rename_info)
+
+		if 'index_name' not in agg_info:
+			agg_info['index_name'] = 'Aggregate'
+		if 'row_props' not in agg_info:
+			agg_info['row_props'] = self.ROW_STYLE_AGGREGATE
+
+		df_tot = self.get_aggregate_df(
+			df, agg_info['columns'], index_name=agg_info['index_name']
+		)
+
+		styler = self.do_df_styling(df, style)
+
+		tot_cols = [c for c in agg_info['columns']]
+		style_tot = self.get_style_tot(style, tot_cols, agg_row_style=agg_info)
+
+		styler_tot = self.do_df_styling(df_tot, style_tot)
+		styler.concat(styler_tot)
+
+		return styler
+
 	def get_styler_with_aggregate_v2(self, df, style, columns_info={}):
 		'''
 		columns_info is a dictionary in which:
@@ -112,7 +163,7 @@ class DfStyler():
 				col_info['all'].append(col)
 		for col, info in columns_info.items():
 			if 'props' in info:
-				if info['props'] in ['row_identifier', 'golden']:
+				if info['props'] in ['row_identifier', 'right', 'golden']:
 					if 'name' in info:
 						col_info[info['props']] = info['name']
 					else:
@@ -239,6 +290,11 @@ class DfStyler():
 		if 'row_identifier' in col_info:
 			props = {'text-align': 'left', 'font-weight': 'bold',}
 			cols = [col_info['row_identifier']]
+			obj.append({'subset_cols': cols, 'properties': props})
+
+		if 'right' in col_info:
+			props = {'text-align': 'right',}
+			cols = [col_info['right']]
 			obj.append({'subset_cols': cols, 'properties': props})
 
 		if 'golden' in col_info:
