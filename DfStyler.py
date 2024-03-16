@@ -59,9 +59,11 @@ class DfStyler():
 	}
 
 	# COMMON STYLES
-	S_LEFT_BOLD = {'text-align': 'center', 'font-weight': 'bold'}
+	S_LEFT_BOLD = {'text-align': 'left', 'font-weight': 'bold'}
+	S_LEFT = {'text-align': 'left'}
 	S_RIGHT = {'text-align': 'right'}
 	S_CENTER = {'text-align': 'center'}
+	S_GOLDEN = {'text-align': 'center', 'font-weight': 'bold', 'background-color': OUR_GOLD}
 
 	def __init__(self):
 		self.DEFAULT_TABLE_STYLE = [
@@ -121,54 +123,6 @@ class DfStyler():
 			else:
 				obj.append({'subset_cols': [col_name], 'properties': self.S_CENTER})
 		style['properties'] = obj
-
-		df = df[show_cols]
-		df = df.rename(columns=rename_info)
-
-		if 'index_name' not in agg_info:
-			agg_info['index_name'] = 'Aggregate'
-		if 'row_props' not in agg_info:
-			agg_info['row_props'] = self.ROW_STYLE_AGGREGATE
-
-		df_tot = self.get_aggregate_df(
-			df, agg_info['columns'], index_name=agg_info['index_name']
-		)
-
-		styler = self.do_df_styling(df, style)
-
-		tot_cols = [c for c in agg_info['columns']]
-		style_tot = self.get_style_tot(style, tot_cols, agg_row_style=agg_info)
-
-		styler_tot = self.do_df_styling(df_tot, style_tot)
-		styler.concat(styler_tot)
-
-		return styler
-
-	def get_styler_with_aggregate_v2(self, df, style, columns_info={}):
-		'''
-		columns_info is a dictionary in which:
-			keys are column names, and
-			values are dictionaries with 'name', 'format' and 'aggregate' as keys
-		'''
-
-		show_cols, rename_info, col_formats, agg_info = self._get_display_info(columns_info)
-		style['col_formats'] = col_formats
-
-		# some styling of columns info produced here
-		col_info = {'all': []}
-		for col, info in columns_info.items():
-			if 'name' in info:
-				col_info['all'].append(info['name'])
-			else:
-				col_info['all'].append(col)
-		for col, info in columns_info.items():
-			if 'props' in info:
-				if info['props'] in ['row_identifier', 'right', 'golden']:
-					if 'name' in info:
-						col_info[info['props']] = info['name']
-					else:
-						col_info[info['props']] = col
-		style['properties'] = self.get_col_style_properties(col_info)
 
 		df = df[show_cols]
 		df = df.rename(columns=rename_info)
@@ -279,30 +233,6 @@ class DfStyler():
 					style_tot['properties'].append(p)
 
 		return style_tot
-
-	def get_col_style_properties(self, col_info={}):
-		obj = []
-		if 'all' in col_info:
-			props = {'text-align': 'center',}
-			cols = col_info['all']
-			obj.append({'subset_cols': cols, 'properties': props})
-
-		if 'row_identifier' in col_info:
-			props = {'text-align': 'left', 'font-weight': 'bold',}
-			cols = [col_info['row_identifier']]
-			obj.append({'subset_cols': cols, 'properties': props})
-
-		if 'right' in col_info:
-			props = {'text-align': 'right',}
-			cols = [col_info['right']]
-			obj.append({'subset_cols': cols, 'properties': props})
-
-		if 'golden' in col_info:
-			props = {'font-weight': 'bold', 'font-size': '1.1em', 'background-color': OUR_GOLD}
-			cols = [col_info['golden']]
-			obj.append({'subset_cols': cols, 'properties': props})
-
-		return obj
 
 	def do_df_styling(self, df, style):
 		# Preprocess style['row_styles']: required for styling index cells
