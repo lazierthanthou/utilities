@@ -100,7 +100,7 @@ class DfStyler():
 		show_cols = [k for k in columns_info if k != '__index__']
 		return show_cols, rename_info, col_formats, agg_info
 
-	def get_styler_with_aggregate_v3(self, df, style, columns_info={}):
+	def get_styler_with_aggregate(self, df, style, columns_info={}):
 		'''
 		columns_info is a dictionary in which:
 			keys are column names, and
@@ -127,29 +127,6 @@ class DfStyler():
 		df = df[show_cols]
 		df = df.rename(columns=rename_info)
 
-		if 'index_name' not in agg_info:
-			agg_info['index_name'] = 'Aggregate'
-		if 'row_props' not in agg_info:
-			agg_info['row_props'] = self.ROW_STYLE_AGGREGATE
-
-		df_tot = self.get_aggregate_df(
-			df, agg_info['columns'], index_name=agg_info['index_name']
-		)
-
-		styler = self.do_df_styling(df, style)
-
-		tot_cols = [c for c in agg_info['columns']]
-		style_tot = self.get_style_tot(style, tot_cols, agg_row_style=agg_info)
-
-		styler_tot = self.do_df_styling(df_tot, style_tot)
-		styler.concat(styler_tot)
-
-		return styler
-
-	def get_styler_with_aggregate(self, df, style, agg_info={}):
-		'''
-		agg_info is a dictionary with index name, column dict with col names as keys and value telling how to aggregate
-		'''
 		if 'index_name' not in agg_info:
 			agg_info['index_name'] = 'Aggregate'
 		if 'row_props' not in agg_info:
