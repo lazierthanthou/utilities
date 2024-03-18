@@ -27,3 +27,14 @@ class Github_Reader():
 		else:
 			print("Error:", response.status_code)
 			return ''
+
+	def get_raw_file(self, file_path):
+		url = f'https://raw.githubusercontent.com/{self.owner}/{self.repo}/main/{file_path}'
+		response = requests.get(url, headers=self._headers)
+
+		if response.status_code == 200:
+			file_content = response.text
+			return file_content
+		else:
+			print("Error:", response.status_code)
+			return ''
