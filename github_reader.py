@@ -7,7 +7,7 @@ class Github_Reader():
 		self.repo = repo
 		self._headers = {
 			"Authorization": f'Bearer {token}',
-			"Accept": "application/vnd.github.v3+json"
+			#"Accept": "application/vnd.github.v3+json"
 		}
 		return
 
@@ -28,13 +28,22 @@ class Github_Reader():
 			print("Error:", response.status_code)
 			return ''
 
-	def get_raw_file(self, file_path):
-		url = f'https://raw.githubusercontent.com/{self.owner}/{self.repo}/main/{file_path}'
+	def download_file(self, file_path_in_repo, save_file_name, raw=True):
+		url = f'https://raw.githubusercontent.com/{self.owner}/{self.repo}/main/{file_path_in_repo}'
 		response = requests.get(url, headers=self._headers)
 
 		if response.status_code == 200:
-			file_content = response.text
-			return file_content
+			if raw:
+				save_mode = 'wb'
+				file_content = response.content
+			else:
+				save_mode = 'w'
+				file_content = response.text
+
+			with open(save_file_name, save_mode) as f:
+				f.write(file_content)
+			return None
 		else:
-			print("Error:", response.status_code)
-			return ''
+			error = f'Error: {response.status_code}'
+			print(error)
+			return error
